@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heli Makwana - Portfolio</title>
+    <script src="https://unpkg.com/three@0.132.2/build/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        .glass:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        #canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        .glow {
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #0ff;
+            }
+            to {
+                text-shadow: 0 0 20px #fff, 0 0 30px #0ff, 0 0 40px #0ff;
+            }
+        }
+
+        .float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .typewriter {
+            overflow: hidden;
+            border-right: .15em solid #0ff;
+            white-space: nowrap;
+            animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+        }
+
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #0ff }
+        }
+
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ripple:after {
+            content: "";
+            display: block;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+            background-repeat: no-repeat;
+            background-position: 50%;
+            transform: scale(10, 10);
+            opacity: 0;
+            transition: transform .5s, opacity 1s;
+        }
+
+        .ripple:active:after {
+            transform: scale(0, 0);
+            opacity: .3;
+            transition: 0s;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900 min-h-screen text-white overflow-x-hidden">
+    <canvas id="canvas"></canvas>
+
+    <div class="container mx-auto px-4 py-20 relative z-10">
+        <div class="glass rounded-xl p-8 md:p-12 max-w-4xl mx-auto">
+            <div class="text-center mb-12">
+                <h1 class="text-4xl md:text-6xl font-bold mb-4 glow typewriter">Heli Makwana</h1>
+                <p class="text-xl md:text-2xl text-blue-200 mb-8 float">Innovating Through Code | Building Dreams Digitally</p>
+                <div class="flex flex-col md:flex-row justify-center items-center gap-6 mb-8">
+                    <div class="glass p-4 rounded-lg transform hover:scale-105 transition-all duration-300">
+                        <p class="text-lg">CST 2 | Junior Council Member, CSI</p>
+                    </div>
+                    <div class="glass p-4 rounded-lg flex flex-col gap-2 transform hover:scale-105 transition-all duration-300">
+                        <a href="mailto:helimakwana969@gmail.com" class="hover:text-blue-300 transition-colors flex items-center">
+                            <i class="bi bi-envelope-fill mr-2 text-blue-400"></i>helimakwana969@gmail.com
+                        </a>
+                        <a href="tel:+918454033203" class="hover:text-blue-300 transition-colors flex items-center">
+                            <i class="bi bi-telephone-fill mr-2 text-blue-400"></i>+91 8454033203
+                        </a>
+                    </div>
+                </div>
+                <button id="exploreBtn" class="ripple bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-bold py-3 px-8 rounded-full transition-all transform hover:scale-105 glass">
+                    Explore My Work
+                </button>
+                <div class="mt-8">
+                    <button id="easterEgg" class="text-2xl opacity-20 hover:opacity-100 transition-opacity duration-300" title="Find a hidden message!">
+                        <i class="bi bi-code-slash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Three.js Background Animation
+        const canvas = document.querySelector('#canvas');
+        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+        function resizeRendererToDisplaySize(renderer) {
+            const canvas = renderer.domElement;
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            const needResize = canvas.width !== width || canvas.height !== height;
+            if (needResize) {
+                renderer.setSize(width, height, false);
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+            }
+            return needResize;
+        }
+
+        // Create particles
+        const geometry = new THREE.BufferGeometry();
+        const vertices = [];
+        for (let i = 0; i < 5000; i++) {
+            vertices.push(
+                Math.random() * 2000 - 1000,
+                Math.random() * 2000 - 1000,
+                Math.random() * 2000 - 1000
+            );
+        }
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+        const material = new THREE.PointsMaterial({ 
+            color: 0x00ffff, 
+            size: 2,
+            transparent: true,
+            opacity: 0.8
+        });
+        const points = new THREE.Points(geometry, material);
+        scene.add(points);
+
+        camera.position.z = 1000;
+
+        // Mouse interaction
+        let mouseX = 0;
+        let mouseY = 0;
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX - window.innerWidth / 2) * 0.1;
+            mouseY = (event.clientY - window.innerHeight / 2) * 0.1;
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            points.rotation.x += 0.0005;
+            points.rotation.y += 0.0005;
+            
+            // Add mouse interaction
+            points.rotation.x += mouseY * 0.0001;
+            points.rotation.y += mouseX * 0.0001;
+            
+            if (resizeRendererToDisplaySize(renderer)) {
+                const canvas = renderer.domElement;
+                camera.aspect = canvas.clientWidth / canvas.clientHeight;
+                camera.updateProjectionMatrix();
+            }
+            
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Easter egg functionality
+        const quotes = [
+            "The best error message is the one that never shows up. - Thomas Fuchs",
+            "First, solve the problem. Then, write the code. - John Johnson",
+            "Code is like humor. When you have to explain it, it's bad. - Cory House",
+            "The only way to learn a new programming language is by writing programs in it. - Dennis Ritchie"
+        ];
+
+        document.getElementById('easterEgg').addEventListener('click', () => {
+            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+            const notification = document.createElement('div');
+            notification.className = 'fixed bottom-4 right-4 glass p-4 rounded-lg max-w-md transform transition-all duration-500 opacity-0';
+            notification.textContent = randomQuote;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('opacity-100'), 100);
+            setTimeout(() => {
+                notification.classList.remove('opacity-100');
+                setTimeout(() => notification.remove(), 500);
+            }, 5000);
+        });
+
+        // Smooth scroll functionality
+        document.getElementById('exploreBtn').addEventListener('click', () => {
+            window.scrollTo({
+                top: window.innerHeight,
+                behavior: 'smooth'
+            });
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
